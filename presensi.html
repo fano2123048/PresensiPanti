@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Presensi Anak Panti</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
+h2{margin-bottom:15px;}
+.card{background:white;padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.1);}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th,td{border:1px solid #ccc;padding:8px;text-align:center;}
+th{background:#3498db;color:white;}
+select{padding:5px;border-radius:5px;}
+.btn{padding:7px 12px;border:none;border-radius:5px;cursor:pointer;color:white;margin-top:10px;}
+.save{background:#2ecc71;}
+</style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Presensi Anak Panti</h2>
+
+    <table id="tabelPresensi">
+        <tr>
+            <th>No</th>
+            <th>Nama</th>
+            <th>Status</th>
+        </tr>
+    </table>
+
+    <button class="btn save" onclick="simpanPresensi()">Simpan Presensi</button>
+</div>
+
+<script>
+const role = localStorage.getItem("role") || "guest";
+if(role!=="pengurus") document.querySelector(".save").style.display="none";
+
+let dataAnak = JSON.parse(localStorage.getItem("dataAnak")) || [];
+let dataPresensi = {}; // untuk menyimpan status terakhir sebelum simpan ke laporan
+
+function renderPresensi(){
+    const t = document.getElementById("tabelPresensi");
+    t.innerHTML = `
+    <tr>
+        <th>No</th><th>Nama</th><th>Status</th>
+    </tr>`;
+    
+    dataAnak.forEach((a,i)=>{
+        let status = "Hadir";
+        if(dataPresensi[a.nama]) status = dataPresensi[a.nama];
+
+        let selectStatus = `<select ${role!=="pengurus"?"disabled":""} onchange="updateStatus('${a.nama}', this.value)">
+                                <option ${status==="Hadir"?"selected":""}>Hadir</option>
+                                <option ${status==="Izin"?"selected":""}>Izin</option>
+                                <option ${status==="Alpa"?"selected":""}>Alpa</option>
+                            </select>`;
+
+        t.innerHTML += `<tr>
+            <td>${i+1}</td>
+            <td>${a.nama}</td>
+            <td>${selectStatus}</td>
+        </tr>`;
+    });
+}
+
+// update status sementara sebelum simpan
+function updateStatus(nama, status){
+    dataPresensi[nama] = status;
+}
+
+// simpan ke localStorage agar laporan bisa menampilkan
+function simpanPresensi(){
+    if(role!=="pengurus") return;
+
+    const tanggal = new Date().toLocaleDateString();
+    const presensiHariIni = dataAnak.map(a=>{
+        return {nama:a.nama, status:dataPresensi[a.nama] || "Hadir"};
+    });
+
+    // Ambil dataPresensi global dari laporan
+    let allPresensi = JSON.parse(localStorage.getItem("dataPresensi")) || [];
+    allPresensi.push({tanggal, data:presensiHariIni});
+    localStorage.setItem("dataPresensi", JSON.stringify(allPresensi));
+
+    alert("Presensi berhasil disimpan!");
+
+    // panggil update laporan jika menu laporan ada
+    if(window.updateLaporan) window.updateLaporan();
+}
+
+renderPresensi();
+</script>
+
+</body>
+</html>

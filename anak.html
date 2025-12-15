@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Anak Panti</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+body{padding:20px;background:#f5f5f5}
+.card{background:#fff;padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.1)}
+h2{margin-bottom:10px}
+
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.right-btns{display:flex;gap:6px}
+
+.btn{padding:6px 10px;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:13px}
+.add{background:#2ecc71}
+.edit{background:#f39c12}
+.delete{background:#e74c3c}
+.addcol{background:#8e44ad}
+
+table{width:100%;border-collapse:collapse;min-width:1000px}
+th,td{border:1px solid #ccc;padding:8px;text-align:center;white-space:nowrap}
+th{background:#3498db;color:#fff}
+
+#formAnak{display:none;margin:15px 0}
+#formAnak input{padding:6px;margin:4px 0;width:100%}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+<h2>Data Anak Panti</h2>
+
+<div class="top-bar">
+  <button class="btn add only-pengurus" onclick="bukaForm()">Tambah Anak</button>
+
+  <div class="right-btns only-pengurus">
+    <button class="btn addcol" onclick="tambahKolom()">+ Tambah Kolom</button>
+    <button class="btn edit" onclick="editKolom()">Edit Kolom</button>
+    <button class="btn delete" onclick="hapusKolom()">Hapus Kolom</button>
+  </div>
+</div>
+
+<div style="overflow-x:auto">
+<table>
+<thead>
+<tr id="headerRow"></tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
+
+<div id="formAnak"></div>
+</div>
+
+<script>
+const role = localStorage.getItem("role") || "pengurus";
+
+let columns = JSON.parse(localStorage.getItem("columns")) || [
+  "No","Nama","TTL","JK","Alamat","Sekolah/Kelas","Aksi"
+];
+
+let dataAnak = JSON.parse(localStorage.getItem("dataAnak"));
+
+if(!dataAnak || dataAnak.length===0){
+  dataAnak=[
+    {nama:"Ahmad Rizki",ttl:"Makassar, 12-03-2012",jk:"Laki-laki",alamat:"Jl. Merdeka",sekolah_kelas:"SD 5 / Kelas 6"},
+    {nama:"Siti Aisyah",ttl:"Gowa, 21-07-2013",jk:"Perempuan",alamat:"Jl. Pendidikan",sekolah_kelas:"SD 3 / Kelas 5"},
+    {nama:"Muhammad Fajar",ttl:"Maros, 09-01-2011",jk:"Laki-laki",alamat:"Jl. Pahlawan",sekolah_kelas:"SMP 2 / Kelas 8"},
+    {nama:"Nur Halimah",ttl:"Makassar, 30-11-2012",jk:"Perempuan",alamat:"Jl. Kenangan",sekolah_kelas:"SD 7 / Kelas 6"},
+    {nama:"Andi Pratama",ttl:"Bone, 17-05-2010",jk:"Laki-laki",alamat:"Jl. Poros Bone",sekolah_kelas:"SMP 1 / Kelas 9"},
+    {nama:"Aulia Rahman",ttl:"Takalar, 04-02-2014",jk:"Laki-laki",alamat:"Jl. Sultan Hasanuddin",sekolah_kelas:"SD 2 / Kelas 4"},
+    {nama:"Putri Ramadhani",ttl:"Makassar, 19-08-2013",jk:"Perempuan",alamat:"Jl. Mawar",sekolah_kelas:"SD 6 / Kelas 5"},
+    {nama:"Ilham Akbar",ttl:"Jeneponto, 25-12-2011",jk:"Laki-laki",alamat:"Jl. Nusantara",sekolah_kelas:"SMP 3 / Kelas 8"}
+  ];
+  localStorage.setItem("dataAnak",JSON.stringify(dataAnak));
+}
+
+function render(){
+  headerRow.innerHTML="";
+  columns.forEach(col=>{
+    if(col==="Aksi" && role==="pemilik") return;
+    headerRow.innerHTML+=`<th>${col}</th>`;
+  });
+
+  tbody.innerHTML="";
+  dataAnak.forEach((row,i)=>{
+    let tr="<tr>";
+    columns.forEach(col=>{
+      if(col==="Aksi" && role==="pemilik") return;
+
+      if(col==="No") tr+=`<td>${i+1}</td>`;
+      else if(col==="Aksi"){
+        tr+=`<td>
+          <button class="btn edit" onclick="editData(${i})">Edit</button>
+          <button class="btn delete" onclick="hapus(${i})">Hapus</button>
+        </td>`;
+      } else {
+        const key=col.toLowerCase().replace(/[^a-z0-9]/g,"_");
+        tr+=`<td ${role==="pengurus"?"contenteditable":""}>${row[key]||""}</td>`;
+      }
+    });
+    tr+="</tr>";
+    tbody.innerHTML+=tr;
+  });
+
+  localStorage.setItem("dataAnak",JSON.stringify(dataAnak));
+}
+
+function bukaForm(){
+  if(role!=="pengurus") return;
+  const f=document.getElementById("formAnak");
+  f.innerHTML="";
+  columns.forEach(col=>{
+    if(col==="No"||col==="Aksi") return;
+    const k=col.toLowerCase().replace(/[^a-z0-9]/g,"_");
+    f.innerHTML+=`<input id="f_${k}" placeholder="${col}">`;
+  });
+  f.innerHTML+=`<button class="btn add" onclick="simpanAnak()">Simpan</button>`;
+  f.style.display="block";
+}
+
+function simpanAnak(){
+  const o={};
+  columns.forEach(col=>{
+    if(col==="No"||col==="Aksi")return;
+    const k=col.toLowerCase().replace(/[^a-z0-9]/g,"_");
+    o[k]=document.getElementById("f_"+k).value;
+  });
+  dataAnak.push(o);
+  render();
+  formAnak.style.display="none";
+}
+
+function editData(i){
+  bukaForm();
+  columns.forEach(col=>{
+    if(col==="No"||col==="Aksi")return;
+    const k=col.toLowerCase().replace(/[^a-z0-9]/g,"_");
+    document.getElementById("f_"+k).value=dataAnak[i][k];
+  });
+  document.querySelector("#formAnak button").onclick=()=>simpanEdit(i);
+}
+
+function simpanEdit(i){
+  columns.forEach(col=>{
+    if(col==="No"||col==="Aksi")return;
+    const k=col.toLowerCase().replace(/[^a-z0-9]/g,"_");
+    dataAnak[i][k]=document.getElementById("f_"+k).value;
+  });
+  render();
+  formAnak.style.display="none";
+}
+
+function hapus(i){
+  if(confirm("Hapus data anak?")){
+    dataAnak.splice(i,1);
+    render();
+  }
+}
+
+/* Sembunyikan tombol jika pemilik */
+if(role==="pemilik"){
+  document.querySelectorAll(".only-pengurus").forEach(el=>el.style.display="none");
+}
+
+render();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan | Sistem Panti Asuhan</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
+body{padding:20px;background:#f5f5f5;}
+h1,h2{margin-bottom:15px;}
+.card{background:white;padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.1);margin-bottom:20px;}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th,td{border:1px solid #ccc;padding:8px;text-align:center;}
+th{background:#3498db;color:white;}
+.btn{padding:7px 12px;border:none;border-radius:5px;cursor:pointer;color:white;margin-right:5px;}
+.print{background:#9b59b6;}
+.excel{background:#2ecc71;}
+@media print{.no-print{display:none;}body{background:white;}}
+</style>
+</head>
+
+<body>
+
+<div class="card no-print">
+<h1>Laporan</h1>
+<button class="btn print" onclick="window.print()">Cetak Semua</button>
+</div>
+
+<!-- ================= DATA ANAK ================= -->
+<div class="card">
+<h2>Data Anak Panti</h2>
+<div style="overflow-x:auto">
+<table id="anakTable">
+<thead>
+<tr></tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
+
+<!-- ================= PRESENSI ================= -->
+<div class="card">
+    <h2>Presensi Anak</h2>
+    <!-- Tombol Hapus Semua -->
+    <button class="btn" 
+            style="background:#e74c3c;color:white;margin-bottom:10px;" 
+            onclick="hapusSemuaPresensi()">
+        🗑 Hapus Semua Presensi
+    </button>
+
+    <table id="presensiTable">
+        <thead>
+            <tr>
+                <th>Tanggal</th><th>Nama</th><th>Status</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- ================= PENDONASI ================= -->
+<div class="card">
+<h2>Data Pendonasi</h2>
+<table id="pendonasiTable">
+<thead>
+<tr>
+<th>No</th><th>Nama</th><th>Email</th><th>No HP</th><th>Alamat</th><th>Jumlah Donasi</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+
+<script>
+    function hapusSemuaPresensi(){
+    if(!confirm("Apakah Anda yakin ingin menghapus SEMUA data presensi?")) return;
+
+    // Hapus seluruh data presensi dari localStorage
+    localStorage.removeItem("dataPresensi");
+
+    // Render ulang tabel presensi kosong
+    const presensiBody = document.querySelector("#presensiTable tbody");
+    presensiBody.innerHTML = `<tr><td colspan="3">Data presensi belum tersedia</td></tr>`;
+
+    alert("Semua data presensi berhasil dihapus!");
+}
+
+const anakTable = document.querySelector("#anakTable");
+const anakBody = anakTable.querySelector("tbody");
+const anakHead = anakTable.querySelector("thead tr");
+
+const presensiBody = document.querySelector("#presensiTable tbody");
+const pendonasiBody = document.querySelector("#pendonasiTable tbody");
+
+/* ===== RENDER DATA ANAK DINAMIS ===== */
+function renderAnak(){
+    const dataAnak = JSON.parse(localStorage.getItem("dataAnak")) || [];
+    const columns = JSON.parse(localStorage.getItem("columns")) || ["No","Nama","TTL","JK","Alamat","Sekolah/Kelas","Aksi"];
+
+    // Render header
+    anakHead.innerHTML = "";
+    columns.forEach(c=>{
+        if(c!=="Aksi"){ // hapus kolom aksi di laporan
+            anakHead.innerHTML += `<th>${c}</th>`;
+        }
+    });
+
+    // Render body
+    anakBody.innerHTML = "";
+    if(dataAnak.length===0){
+        anakBody.innerHTML = `<tr><td colspan="${columns.length-1}">Data anak belum tersedia</td></tr>`;
+    } else {
+        dataAnak.forEach((row,i)=>{
+            let tr = "<tr>";
+            columns.forEach(col=>{
+                if(col==="No"){
+                    tr += `<td>${i+1}</td>`;
+                } else if(col==="Aksi"){
+                    // skip
+                } else {
+                    const key = col.toLowerCase().replace(/[^a-z0-9]/g,"_");
+                    tr += `<td>${row[key] || ""}</td>`;
+                }
+            });
+            tr += "</tr>";
+            anakBody.innerHTML += tr;
+        });
+    }
+}
+
+/* ===== RENDER PRESENSI ===== */
+function renderPresensi(){
+    const dataPresensi = JSON.parse(localStorage.getItem("dataPresensi")) || [];
+    presensiBody.innerHTML = "";
+    if(dataPresensi.length===0){
+        presensiBody.innerHTML = `<tr><td colspan="3">Data presensi belum tersedia</td></tr>`;
+    } else {
+        dataPresensi.forEach(p=>{
+            p.data.forEach(d=>{
+                presensiBody.innerHTML += `<tr>
+                    <td>${p.tanggal}</td><td>${d.nama}</td><td>${d.status}</td>
+                </tr>`;
+            });
+        });
+    }
+}
+
+/* ===== RENDER PENDONASI ===== */
+function renderPendonasi(){
+    const dataPendonasi = JSON.parse(localStorage.getItem("dataPendonasi")) || [];
+    pendonasiBody.innerHTML = "";
+    if(dataPendonasi.length===0){
+        pendonasiBody.innerHTML = `<tr><td colspan="6">Tidak ada data</td></tr>`;
+    } else {
+        dataPendonasi.forEach((d,i)=>{
+            pendonasiBody.innerHTML += `<tr>
+                <td>${i+1}</td><td>${d.nama}</td><td>${d.email}</td><td>${d.hp}</td><td>${d.alamat}</td><td>${d.jumlah}</td>
+            </tr>`;
+        });
+    }
+}
+
+/* ===== RENDER SEMUA ===== */
+function renderSemua(){
+    renderAnak();
+    renderPresensi();
+    renderPendonasi();
+}
+
+// Render awal
+renderSemua();
+
+/* ===== AUTO UPDATE SAAT DATA ANAK / KOLOM BERUBAH ===== */
+window.addEventListener("storage", (e)=>{
+    if(["dataAnak","columns","dataPresensi","dataPendonasi"].includes(e.key)){
+        renderSemua();
+    }
+});
+
+// Fungsi dipanggil dari menu anak setelah update
+window.updateLaporan = function(){
+    renderSemua();
+};
+
+</script>
+
+</body>
+</html>

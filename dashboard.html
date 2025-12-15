@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panti Asuhan Hammu Pangia</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+/* Reset & Font */
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;}
+body{background:#f0f2f5;}
+
+/* TOPBAR */
+.topbar{
+    height:60px;
+    background:linear-gradient(90deg, #6a11cb, #2575fc);
+    color:#ffffff;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 25px;
+    box-shadow:0 4px 8px rgba(0,0,0,0.1);
+    font-size:18px;
+    font-weight:bold;
+}
+
+/* LOGOUT BUTTON */
+.logout{
+    background:#ff5c5c;
+    color:white;
+    border:none;
+    padding:8px 16px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:all 0.3s;
+}
+.logout:hover{
+    background:#e04343;
+    transform:scale(1.05);
+}
+
+/* SIDEBAR */
+.sidebar{
+    width:250px;
+    height:calc(100vh - 60px);
+    position:fixed;
+    top:60px;
+    left:0;
+    background:#ffffff;
+    border-right:1px solid #ddd;
+    box-shadow:2px 0 6px rgba(0,0,0,0.05);
+}
+
+/* PROFILE */
+.profile{
+    text-align:center;
+    padding:20px;
+    border-bottom:1px solid #eee;
+}
+.profile img{
+    width:70px;
+    border-radius:50%;
+    border:2px solid #6a11cb;
+    margin-bottom:10px;
+}
+.profile p{
+    font-weight:bold;
+    color:#333;
+}
+
+/* MENU */
+.menu{
+    list-style:none;
+    padding-top:10px;
+}
+.menu li{
+    display:flex;
+    align-items:center;
+    padding:15px 20px;
+    margin:5px 10px;
+    border-radius:10px;
+    cursor:pointer;
+    transition:all 0.3s;
+    color:#333;
+    font-weight:500;
+    gap:15px;
+}
+.menu li i{
+    width:20px;
+    text-align:center;
+}
+.menu li:hover{
+    background:linear-gradient(90deg, #6a11cb, #2575fc);
+    color:white;
+    transform:translateX(5px);
+}
+
+/* CONTENT */
+.content{
+    margin-left:250px;
+    margin-top:60px;
+    padding:25px;
+}
+iframe{
+    width:100%;
+    height:85vh;
+    border:none;
+    border-radius:15px;
+    box-shadow:0 6px 16px rgba(0,0,0,0.15);
+    background:white;
+    transition:all 0.3s;
+}
+iframe:hover{
+    transform:scale(1.01);
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+    <span>Panti Asuhan Hammu Pangia</span>
+    <button class="logout" onclick="logout()">Logout</button>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div class="profile">
+        <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
+        <p id="roleText"></p>
+    </div>
+
+    <ul class="menu">
+        <li onclick="loadPage('panti.html')"><i class="fas fa-home"></i>Panti Asuhan</li>
+        <li onclick="loadPage('anak.html')"><i class="fas fa-child"></i>Anak Panti</li>
+        <li onclick="loadPage('presensi.html')"><i class="fas fa-calendar-check"></i>Presensi</li>
+        <li onclick="loadPage('pendonasi.html')"><i class="fas fa-hand-holding-heart"></i>Pendonasi</li>
+        <li onclick="loadPage('laporan.html')"><i class="fas fa-file-alt"></i>Laporan</li>
+    </ul>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+    <iframe id="frame" src="panti.html"></iframe>
+</div>
+
+<script>
+// Ambil role dari localStorage
+const role = localStorage.getItem("role");
+if(!role) location.href="login.html";
+document.getElementById("roleText").innerText = role.toUpperCase();
+
+// Load halaman di iframe
+function loadPage(page){
+    document.getElementById("frame").src = page;
+}
+
+// Logout
+function logout(){
+    localStorage.clear();
+    location.href="login.html";
+}
+</script>
+
+</body>
+</html>

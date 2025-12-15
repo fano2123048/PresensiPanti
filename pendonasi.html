@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Pendonasi</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
+h2{margin-bottom:15px;}
+.card{background:white;padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.1);}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:15px;}
+input{padding:8px;border:1px solid #ccc;border-radius:5px;}
+.btn{padding:7px 12px;border:none;border-radius:5px;cursor:pointer;color:white;}
+.add{background:#2ecc71;}
+.delete{background:#e74c3c;}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th,td{border:1px solid #ccc;padding:8px;text-align:center;}
+th{background:#3498db;color:white;}
+</style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Data Pendonasi</h2>
+
+    <div class="form" id="formTambah">
+        <input id="nama" placeholder="Nama Pendonasi">
+        <input id="email" placeholder="Email">
+        <input id="hp" placeholder="No HP">
+        <input id="alamat" placeholder="Alamat">
+        <input id="jumlah" placeholder="Jumlah Donasi">
+        <button class="btn add" onclick="tambah()">Tambah</button>
+    </div>
+
+    <table id="tabel">
+        <tr>
+            <th>No</th>
+            <th>Nama</th>
+            <th>Email</th>
+            <th>No HP</th>
+            <th>Alamat</th>
+            <th>Jumlah Donasi</th>
+            <th>Aksi</th>
+        </tr>
+    </table>
+</div>
+
+<script>
+const role = localStorage.getItem("role") || "guest";
+if(role !== "pengurus") document.getElementById("formTambah").style.display="none";
+
+let dataPendonasi = JSON.parse(localStorage.getItem("dataPendonasi")) || [];
+
+function render(){
+    const t = document.getElementById("tabel");
+    t.innerHTML = `
+    <tr>
+        <th>No</th>
+        <th>Nama</th>
+        <th>Email</th>
+        <th>No HP</th>
+        <th>Alamat</th>
+        <th>Jumlah Donasi</th>
+        <th>Aksi</th>
+    </tr>`;
+    dataPendonasi.forEach((d,i)=>{
+        let aksiBtn = role==="pengurus"? `<button class="btn delete" onclick="hapus(${i})">Hapus</button>` : "";
+        t.innerHTML += `<tr>
+            <td>${i+1}</td>
+            <td>${d.nama}</td>
+            <td>${d.email}</td>
+            <td>${d.hp}</td>
+            <td>${d.alamat}</td>
+            <td>${d.jumlah}</td>
+            <td>${aksiBtn}</td>
+        </tr>`;
+    });
+}
+
+function tambah(){
+    if(role!=="pengurus") return;
+    if(!nama.value || !email.value || !hp.value || !alamat.value || !jumlah.value){
+        alert("Lengkapi semua data!");
+        return;
+    }
+    dataPendonasi.push({
+        nama:nama.value,
+        email:email.value,
+        hp:hp.value,
+        alamat:alamat.value,
+        jumlah:jumlah.value
+    });
+    localStorage.setItem("dataPendonasi", JSON.stringify(dataPendonasi));
+    nama.value=email.value=hp.value=alamat.value=jumlah.value="";
+    render();
+}
+
+function hapus(i){
+    if(role!=="pengurus") return;
+    if(confirm("Hapus data pendonasi?")){
+        dataPendonasi.splice(i,1);
+        localStorage.setItem("dataPendonasi", JSON.stringify(dataPendonasi));
+        render();
+    }
+}
+
+render();
+</script>
+
+</body>
+</html>
